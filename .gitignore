@@ -3,6 +3,8 @@ Thesis/data/
 
 # Ignore Python virtual environment folder
 .venv/
+BscThesisvenv/
+
 
 # Additional common Python ignore patterns
 

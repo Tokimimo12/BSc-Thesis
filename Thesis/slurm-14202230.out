@@ -1,0 +1,67 @@
+The following modules were not unloaded:
+  (Use "module --force purge" to unload all):
+
+  1) 2023.01   2) StdEnv
+ERROR: Could not open requirements file: [Errno 2] No such file or directory: '/home1/s4680340/BSc-Thesis/requirements.txt'
+/home1/s4680340/BSc-Thesis/Thesis/mmsdk/mmdatasdk/computational_sequence/file_ops.py:53: SyntaxWarning: "is" with a literal. Did you mean "=="?
+  metadataHandle.create_dataset(metadataKey,(1,),dtype=h5py.special_dtype(vlen=unicode) if sys.version_info.major is 2 else h5py.special_dtype(vlen=str))
+/home1/s4680340/BSc-Thesis/Thesis/mmsdk/mmdatasdk/computational_sequence/file_ops.py:54: SyntaxWarning: "is" with a literal. Did you mean "=="?
+  cast_operator=unicode if sys.version_info.major is 2 else str
+['/home1/s4680340/BSc-Thesis/Thesis', '/cvmfs/hpc.rug.nl/versions/2023.01/rocky8/x86_64/amd/zen3/software/Python/3.9.6-GCCcore-11.2.0/easybuild/python', '/cvmfs/hpc.rug.nl/versions/2023.01/rocky8/x86_64/amd/zen3/software/Python/3.9.6-GCCcore-11.2.0/lib/python39.zip', '/cvmfs/hpc.rug.nl/versions/2023.01/rocky8/x86_64/amd/zen3/software/Python/3.9.6-GCCcore-11.2.0/lib/python3.9', '/cvmfs/hpc.rug.nl/versions/2023.01/rocky8/x86_64/amd/zen3/software/Python/3.9.6-GCCcore-11.2.0/lib/python3.9/lib-dynload', '/home1/s4680340/BSc-Thesis/BscThesisvenv/lib/python3.9/site-packages']
+['/home1/s4680340/BSc-Thesis/Thesis', '/cvmfs/hpc.rug.nl/versions/2023.01/rocky8/x86_64/amd/zen3/software/Python/3.9.6-GCCcore-11.2.0/easybuild/python', '/cvmfs/hpc.rug.nl/versions/2023.01/rocky8/x86_64/amd/zen3/software/Python/3.9.6-GCCcore-11.2.0/lib/python39.zip', '/cvmfs/hpc.rug.nl/versions/2023.01/rocky8/x86_64/amd/zen3/software/Python/3.9.6-GCCcore-11.2.0/lib/python3.9', '/cvmfs/hpc.rug.nl/versions/2023.01/rocky8/x86_64/amd/zen3/software/Python/3.9.6-GCCcore-11.2.0/lib/python3.9/lib-dynload', '/home1/s4680340/BSc-Thesis/BscThesisvenv/lib/python3.9/site-packages', '/home1/s4680340/BSc-Thesis/CMU-MultimodalSDK']
+SDK_PATH: /home/viki/Documents/BSc-Thesis/Thesis
+SDK path is set to /home/viki/Documents/BSc-Thesis/Thesis
+Traceback (most recent call last):
+  File "/home1/s4680340/BSc-Thesis/Thesis/modelAudio.py", line 311, in <module>
+    model = build()
+  File "/home1/s4680340/BSc-Thesis/Thesis/modelAudio.py", line 295, in build
+    dataset = setup_data()
+  File "/home1/s4680340/BSc-Thesis/Thesis/modelAudio.py", line 36, in setup_data
+    os.makedirs(DATA_PATH)
+  File "/cvmfs/hpc.rug.nl/versions/2023.01/rocky8/x86_64/amd/zen3/software/Python/3.9.6-GCCcore-11.2.0/lib/python3.9/os.py", line 215, in makedirs
+    makedirs(head, exist_ok=exist_ok)
+  File "/cvmfs/hpc.rug.nl/versions/2023.01/rocky8/x86_64/amd/zen3/software/Python/3.9.6-GCCcore-11.2.0/lib/python3.9/os.py", line 215, in makedirs
+    makedirs(head, exist_ok=exist_ok)
+  File "/cvmfs/hpc.rug.nl/versions/2023.01/rocky8/x86_64/amd/zen3/software/Python/3.9.6-GCCcore-11.2.0/lib/python3.9/os.py", line 215, in makedirs
+    makedirs(head, exist_ok=exist_ok)
+  [Previous line repeated 1 more time]
+  File "/cvmfs/hpc.rug.nl/versions/2023.01/rocky8/x86_64/amd/zen3/software/Python/3.9.6-GCCcore-11.2.0/lib/python3.9/os.py", line 225, in makedirs
+    mkdir(name, mode)
+PermissionError: [Errno 13] Permission denied: '/home/viki'
+
+###############################################################################
+Hábrók Cluster
+Job 14202230 for user s4680340
+Finished at: Wed Dec 11 21:25:44 CET 2024
+
+Job details:
+============
+
+Job ID                         : 14202230
+Name                           : jobscript.sh
+User                           : s4680340
+Partition                      : regularshort
+Nodes                          : node17
+Number of Nodes                : 1
+Cores                          : 4
+Number of Tasks                : 1
+State                          : RUNNING  
+Submit                         : 2024-12-11T21:25:26
+Start                          : 2024-12-11T21:25:27
+End                            : --
+Reserved walltime              : 00:10:00
+Used walltime                  : 00:00:17
+Used CPU time                  : -- 
+% User (Computation)           : --
+% System (I/O)                 : --
+Total memory reserved          : 8G
+Maximum memory used            : --
+
+Acknowledgements:
+=================
+
+Please see this page for information about acknowledging Hábrók in your publications:
+
+https://wiki.hpc.rug.nl/habrok/introduction/scientific_output
+
+################################################################################
