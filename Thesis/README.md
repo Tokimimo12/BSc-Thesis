@@ -1,0 +1,4 @@
+# TutorialCMU
+
+loading .venv
+
