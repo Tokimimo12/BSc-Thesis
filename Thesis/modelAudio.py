@@ -7,9 +7,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 import sys
-print(sys.path)  # Debug the sys.path to confirm the directory is included
-sys.path.append('/home1/s4680340/BSc-Thesis/CMU-MultimodalSDK')
-print(sys.path)  # Debug the sys.path to confirm the directory is included
 import mmsdk
 
 
@@ -21,7 +18,7 @@ from tqdm import tqdm
 from mmsdk import mmdatasdk as md
 from sklearn.metrics import accuracy_score
 from constants import SDK_PATH, DATA_PATH, WORD_EMB_PATH, CACHE_PATH
-
+from SingleEncoderModelAudio import SingleEncoderModelAudio
 
 
 def initialize_sdk():
@@ -54,9 +51,6 @@ def setup_data():
 
     return DATASET
 
-def avg(intervals: np.array, features: np.array) -> np.array:
-    return np.average(features, axis=0) if features.ndim > 1 else features
-
 def load_features(dataset):
     visual_field = 'CMU_MOSI_Visual_Facet_41'
     acoustic_field = 'CMU_MOSI_COVAREP'
@@ -64,28 +58,39 @@ def load_features(dataset):
     wordvectors_field = 'CMU_MOSI_TimestampedWordVectors'
 
     recipe = {
-        text_field: os.path.join(DATA_PATH, "language", text_field) + '.csd',
-        wordvectors_field: os.path.join(DATA_PATH, "language", wordvectors_field) + '.csd',
-        visual_field: os.path.join(DATA_PATH, "visual", visual_field) + '.csd',
-        acoustic_field: os.path.join(DATA_PATH, "acoustic", acoustic_field) + '.csd'
+        text_field: os.path.join(DATA_PATH, text_field) + '.csd',
+        wordvectors_field: os.path.join(DATA_PATH, wordvectors_field) + '.csd',
+        visual_field: os.path.join(DATA_PATH, visual_field) + '.csd',
+        acoustic_field: os.path.join(DATA_PATH, acoustic_field) + '.csd'
     }
 
     print("Loading dataset features...")
     dataset = md.mmdataset(recipe)
 
-
+    def avg(intervals: np.array, features: np.array) -> np.array:
+        try:
+            return np.average(features, axis=0)
+        except:
+            return features
+        
     dataset.align(text_field, collapse_functions=[avg])
     return dataset, visual_field, acoustic_field, text_field, wordvectors_field
 
 def preprocess_data(dataset, visual_field, acoustic_field, text_field, wordvectors_field):
     label_field = 'CMU_MOSI_Opinion_Labels'
-    label_recipe = {label_field: os.path.join(DATA_PATH, "labels", label_field) + '.csd'}
+    label_recipe = {label_field: os.path.join(DATA_PATH, label_field) + '.csd'}
     dataset.add_computational_sequences(label_recipe, destination=None)
     dataset.align(label_field)
 
     train_split = dataset.standard_folds.standard_train_fold
     dev_split = dataset.standard_folds.standard_valid_fold
     test_split = dataset.standard_folds.standard_test_fold
+
+    print(f"lengths: train {len(train_split)}, dev {len(dev_split)}, test {len(test_split)}\n")
+    print(train_split)
+    print(dev_split)
+    print(test_split)
+
 
     word2id = defaultdict(lambda: len(word2id))
     UNK = word2id['<unk>']
