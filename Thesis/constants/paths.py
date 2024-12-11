@@ -1,14 +1,14 @@
 from typing import Optional
 
 # path to the SDK folder
-SDK_PATH: Optional[str] = '/home/viki/Documents/Thesis/TutorialCMU/CMU-MultimodalSDK'
+SDK_PATH: Optional[str] = '/home/viki/Documents/BSc-Thesis/Thesis'
 print("SDK_PATH:", SDK_PATH)
 
 # path to the folder where you want to store data
-DATA_PATH: Optional[str] = '/home/viki/Documents/Thesis/TutorialCMU/data'
+DATA_PATH: Optional[str] = '/home/viki/Documents/BSc-Thesis/Thesis/data'
 
 # path to a pretrained word embedding file
-WORD_EMB_PATH: Optional[str] = '/home/viki/Documents/Thesis/TutorialCMU/data/http__immortal.multicomp.cs.cmu.edu/CMU-MOSI/language/CMU_MOSI_TimestampedWordVectors.csd'
+WORD_EMB_PATH: Optional[str] = None
 
 # path to loaded word embedding matrix and corresponding word2id mapping
 CACHE_PATH: Optional[str] = None
