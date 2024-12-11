@@ -1,0 +1,193 @@
+# Ignore the data folder in the Thesis directory
+Thesis/data/
+
+# Ignore Python virtual environment folder
+.venv/
+
+# Additional common Python ignore patterns
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+.coverage
+*.cover
+*.py,cover
+.hypothesis/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# Environments
+.env
+.env.*
+.venv
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# macOS files
+.DS_Store
+
+# Windows files
+Thumbs.db
+desktop.ini
+
+# Editor directories and files
+.idea/
+.vscode/
+*.swp
+*~
+
+
+# --------------------------------------
+# General Files & Directories
+# --------------------------------------
+*.log
+*.bak
+*~
+.vscode/
+.idea/
+__MACOSX/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# --------------------------------------
+# Byte-compiled / optimized / DLL files
+# --------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# --------------------------------------
+# Distribution / packaging
+# --------------------------------------
+.Python
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Packages & Dependency Directories
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+.installed.cfg
+
+# --------------------------------------
+# Development Tools & Environments
+# --------------------------------------
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# celery beat schedule file
+celerybeat-schedule
+
+# SageMath
+*.sage.py
+
+# virtualenv
+.env
+.venv
+venv/
+ENV/
+
+# Spyder & Rope Project Settings
+.spyderproject
+.spyproject
+.ropeproject
+
+# mypy
+.mypy_cache/
+
+# --------------------------------------
+# Framework & Libraries Specific
+# --------------------------------------
+# Django
+local_settings.py
+
+# Flask
+instance/
+.webassets-cache
+
+# Scrapy
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# mkdocs
+/site
+
+# --------------------------------------
+# Translations
+# --------------------------------------
+*.mo
+*.pot
+
+# --------------------------------------
+# Installer & Pip logs
+# --------------------------------------
+pip-log.txt
+pip-delete-this-directory.txt
