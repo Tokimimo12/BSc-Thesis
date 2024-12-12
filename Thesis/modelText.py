@@ -250,9 +250,14 @@ def build():
 
     # Load word embeddings if available
     pretrained_emb = None
-    if WORD_EMB_PATH:
+    if os.path.exists(CACHE_PATH):
+        pretrained_emb, word2id = torch.load(CACHE_PATH)
+        print(f"Size of vocabulary (word2id) after pretrained 1: {len(word2id)}")
+    elif WORD_EMB_PATH:
         pretrained_emb = load_embeddings(word2id, WORD_EMB_PATH)
+        torch.save((pretrained_emb, word2id), CACHE_PATH)
 
+ 
     # Initialize model
     model = SingleEncoderModelText(
         dic_size=len(word2id),

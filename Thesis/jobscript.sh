@@ -15,6 +15,6 @@ source $HOME/BSc-Thesis/BscThesisvenv/bin/activate
 pip install --no-cache-dir -r $HOME/BSc-Thesis/Thesis/requirements.txt
 
 # Run the preprocessing script
-# python modelAudio.py
+# python modelAudio.py WORKS!!!!
 python modelText.py
 
