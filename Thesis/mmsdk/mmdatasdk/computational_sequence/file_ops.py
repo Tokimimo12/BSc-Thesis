@@ -8,7 +8,7 @@ from mmsdk.mmdatasdk.configurations.metadataconfigs import *
 from mmsdk.mmdatasdk.computational_sequence.integrity_check import *
 
 def read_CSD(resource,destination=None):
-	resource = resource.replace("://", "__")
+	# resource = resource.replace("://", "__")
 	if (resource == None): raise log.error("No resource specified for computational sequence!",error=True)
 	if os.path.isfile(resource) is False:
 		log.error("%s file not found, please check the path ..."%resource,error=True)

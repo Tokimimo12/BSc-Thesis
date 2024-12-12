@@ -19,7 +19,7 @@ from mmsdk import mmdatasdk as md
 from sklearn.metrics import accuracy_score
 from constants import SDK_PATH, DATA_PATH, WORD_EMB_PATH, CACHE_PATH
 from SingleEncoderModelAudio import SingleEncoderModelAudio
-
+from mmsdk.mmdatasdk.dataset.standard_datasets.CMU_MOSI.cmu_mosi_std_folds import standard_train_fold, standard_valid_fold, standard_test_fold
 
 def initialize_sdk():
     if SDK_PATH is None:
@@ -32,26 +32,26 @@ def setup_data():
     if not os.path.exists(DATA_PATH):
         os.makedirs(DATA_PATH)
 
-    DATASET = md.cmu_mosi
+    DATASETMD = md.cmu_mosi
 
     try:
-        md.mmdataset(DATASET.highlevel, DATA_PATH)
+        md.mmdataset(DATASETMD.highlevel, DATA_PATH)
     except RuntimeError:
         print("High-level features already downloaded.")
 
     try:
-        md.mmdataset(DATASET.raw, DATA_PATH)
+        md.mmdataset(DATASETMD.raw, DATA_PATH)
     except RuntimeError:
         print("Raw data already downloaded.")
 
     try:
-        md.mmdataset(DATASET.labels, DATA_PATH)
+        md.mmdataset(DATASETMD.labels, DATA_PATH)
     except RuntimeError:
         print("Labels already downloaded.")
 
-    return DATASET
+    return DATASETMD
 
-def load_features(dataset):
+def load_features(DATASET):
     visual_field = 'CMU_MOSI_Visual_Facet_41'
     acoustic_field = 'CMU_MOSI_COVAREP'
     text_field = 'CMU_MOSI_TimestampedWords'
@@ -76,15 +76,20 @@ def load_features(dataset):
     dataset.align(text_field, collapse_functions=[avg])
     return dataset, visual_field, acoustic_field, text_field, wordvectors_field
 
-def preprocess_data(dataset, visual_field, acoustic_field, text_field, wordvectors_field):
+def preprocess_data(DATASETMD, dataset, visual_field, acoustic_field, text_field, wordvectors_field):
     label_field = 'CMU_MOSI_Opinion_Labels'
     label_recipe = {label_field: os.path.join(DATA_PATH, label_field) + '.csd'}
     dataset.add_computational_sequences(label_recipe, destination=None)
     dataset.align(label_field)
 
-    train_split = dataset.standard_folds.standard_train_fold
-    dev_split = dataset.standard_folds.standard_valid_fold
-    test_split = dataset.standard_folds.standard_test_fold
+    
+    train_split = DATASETMD.standard_folds.standard_train_fold
+    dev_split = DATASETMD.standard_folds.standard_valid_fold
+    test_split = DATASETMD.standard_folds.standard_test_fold
+    # train_split = standard_train_fold
+    # dev_split = standard_valid_fold
+    # test_split = standard_test_fold
+    
 
     print(f"lengths: train {len(train_split)}, dev {len(dev_split)}, test {len(test_split)}\n")
     print(train_split)
@@ -122,9 +127,39 @@ def preprocess_data(dataset, visual_field, acoustic_field, text_field, wordvecto
                 wordvectors.append(_wordvectors[i, :])
 
         words = np.asarray(words)
-        visual = np.nan_to_num((visual - visual.mean(0)) / (EPS + np.std(visual, axis=0)))
-        acoustic = np.nan_to_num((acoustic - np.nanmean(acoustic, axis=0)) / (EPS + np.nanstd(acoustic, axis=0)))
-        wordvectors = np.nan_to_num((wordvectors - np.nanmean(wordvectors, axis=0)) / (EPS + np.nanstd(wordvectors, axis=0)))
+        visual = np.asarray(visual)
+        acoustic = np.asarray(acoustic)
+        wordvectors = np.asarray(wordvectors)
+
+
+        std_dev_visual = np.std(visual, axis=0, keepdims=True)
+        visual = np.nan_to_num((visual - visual.mean(0, keepdims=True)) / (EPS + std_dev_visual))
+        visual[:, std_dev_visual.flatten() == 0] = EPS  # Safeguard for zero standard deviation
+
+        # Z-normalization for acoustic modality (across all acoustic features)
+        acoustic_mean = np.nanmean(acoustic, axis=0, keepdims=True)
+        std_dev_acoustic = np.nanstd(acoustic, axis=0, keepdims=True)
+        std_dev_acoustic = np.nan_to_num(std_dev_acoustic)
+        std_dev_acoustic[std_dev_acoustic == 0] = EPS  # Safeguard for zero standard deviation
+
+        acoustic = np.nan_to_num((acoustic - acoustic_mean) / (EPS + std_dev_acoustic))
+
+        # Z-normalization for word vectors
+        wordvectors_mean = np.nanmean(wordvectors, axis=0, keepdims=True)
+        std_dev_wordvectors = np.nanstd(wordvectors, axis=0, keepdims=True)
+        std_dev_wordvectors = np.nan_to_num(std_dev_wordvectors)
+        std_dev_wordvectors[std_dev_wordvectors == 0] = EPS  # Safeguard for zero standard deviation
+        wordvectors = np.nan_to_num((wordvectors - wordvectors_mean) / (EPS + std_dev_wordvectors))
+
+        # plot_hist2(wordvectors, acoustic)
+
+        # Ensure no NaN or Inf values in the data
+        if np.any(np.isnan(acoustic)) or np.any(np.isinf(acoustic)):
+            print(f"Error in acoustic data for segment {vid}")
+        if np.any(np.isnan(visual)) or np.any(np.isinf(visual)):
+            print(f"Error in visual data for segment {vid}")
+        if np.any(np.isnan(words)) or np.any(np.isinf(words)):
+            print(f"Error in wordvectors data for segment {vid}")
 
         if vid in train_split:
             train.append(((words, visual, acoustic, wordvectors), label, segment))
@@ -134,32 +169,63 @@ def preprocess_data(dataset, visual_field, acoustic_field, text_field, wordvecto
             test.append(((words, visual, acoustic, wordvectors), label, segment))
 
     print(f"Dropped {num_drop} inconsistent datapoints.")
+    vocab_size = len(word2id)
+    print(f"Vocabulary size: {vocab_size}")
+    
+    def return_unk():
+        return UNK
+    word2id.default_factory = return_unk
+
     return train, dev, test, word2id
 
-def train_model(train_loader, dev_loader):
+def multi_collate_acoustic(batch):
+    '''
+    Collate function for acoustic data only. Batch will be sorted based on the sequence length of the acoustic features.
+    '''
+    # Sort batch in descending order based on the length of the acoustic feature sequence
+    batch = sorted(batch, key=lambda x: x[0][2].shape[0], reverse=True)
+    
+    # Extract labels and acoustic features from the batch
+    labels = torch.cat([torch.from_numpy(sample[1]) for sample in batch], dim=0).float()
+    acoustic = pad_sequence([torch.FloatTensor(sample[0][2]) for sample in batch], batch_first=True)
+    
+    # Sequence lengths (useful for RNNs)
+    lengths = torch.LongTensor([sample[0][2].shape[0] for sample in batch])
+    return acoustic, labels, lengths
+
+
+def convert_to_sentiment_category(score):
+    if score == 3:
+        return 'strongly positive'
+    elif score >= 2 and score < 3:
+        return 'positive'
+    elif score >= 1 and score < 2:
+        return 'weakly positive'
+    elif score < 1 and score > -1:
+        return 'neutral'
+    elif score <= -1 and score > -2:
+        return 'weakly negative'
+    elif score <= -2 and score > -3:
+        return 'negative'
+    elif score == -3:
+        return 'strongly negative'
+    else:
+        return 'unknown'
+
+
+def train_model(model, train_loader, dev_loader):
+    """
+    Trains the model using the given training and development data loaders.
+    """
     torch.manual_seed(123)
     torch.cuda.manual_seed_all(123)
 
     CUDA = torch.cuda.is_available()
     MAX_EPOCH = 1000
 
-    input_size = 74  # Example: Number of features per time step (adjust as per your data)
-    hidden_sizes = 128
-    num_layers = 2  # Number of layers in GRU
-    output_size = 1  # Output size (e.g., 1 for binary classification)
-
-    dropout = 0.5
     curr_patience = patience = 8
     num_trials = 3
     grad_clip_value = 1.0
-
-    print("Model ???")
-    model = SingleEncoderModelAudio(input_size=input_size, 
-                                    hidden_dim=hidden_sizes,
-                                    num_layers=num_layers,
-                                    dropout_rate=dropout,
-                                    output_size=output_size)
-    print("Model created")
 
     optimizer = model.create_optimizer(lr=0.001)
     print("Optimizer created")
@@ -241,26 +307,11 @@ def train_model(train_loader, dev_loader):
 
     return model
 
-def convert_to_sentiment_category(score):
-    if score == 3:
-        return 'strongly positive'
-    elif score >= 2 and score < 3:
-        return 'positive'
-    elif score >= 1 and score < 2:
-        return 'weakly positive'
-    elif score < 1 and score > -1:
-        return 'neutral'
-    elif score <= -1 and score > -2:
-        return 'weakly negative'
-    elif score <= -2 and score > -3:
-        return 'negative'
-    elif score == -3:
-        return 'strongly negative'
-    else:
-        return 'unknown'
 
-
-def test_model(test_loader, model):
+def test_model(model, test_loader):
+    """
+    Tests the model using the given test data loader.
+    """
     CUDA = torch.cuda.is_available()
     model.load_state_dict(torch.load('modelaudio.std'))
     print("Model loaded successfully!")
@@ -271,7 +322,6 @@ def test_model(test_loader, model):
     with torch.no_grad():
         test_loss = 0.0
         for batch in test_loader:
-            model.zero_grad()
             a, y, l = batch
 
             if CUDA:
@@ -281,7 +331,10 @@ def test_model(test_loader, model):
 
             y_tilde = model(a, l)
             loss = nn.MSELoss(reduction='sum')(y_tilde, y)
-    
+            test_loss += loss.item()
+            y_true.append(y.cpu().numpy())
+            y_pred.append(y_tilde.cpu().numpy())
+
     y_true = np.concatenate(y_true, axis=0)
     y_pred = np.concatenate(y_pred, axis=0)
 
@@ -294,24 +347,42 @@ def test_model(test_loader, model):
     return accuracy
 
 
-
 def build():
+    """
+    Builds and trains the model, then evaluates it on the test set.
+    """
     initialize_sdk()
-    dataset = setup_data()
-    dataset, visual_field, acoustic_field, text_field, wordvectors_field = load_features(dataset)
-    train, dev, test, word2id = preprocess_data(dataset, visual_field, acoustic_field, text_field, wordvectors_field)
+    datasetMD = setup_data()
+    dataset, visual_field, acoustic_field, text_field, wordvectors_field = load_features(datasetMD)
+    train, dev, test, word2id = preprocess_data(datasetMD, dataset, visual_field, acoustic_field, text_field, wordvectors_field)
     train_loader = DataLoader(train, shuffle=True, batch_size=56, collate_fn=multi_collate_acoustic)
     dev_loader = DataLoader(dev, shuffle=False, batch_size=168, collate_fn=multi_collate_acoustic)
-    
-    model = train_model(train_loader, dev_loader)
-    
     test_loader = DataLoader(test, shuffle=False, batch_size=168, collate_fn=multi_collate_acoustic)
-    
-    test_model = test_model(test_loader, model)
 
-    return model, test_model
+    input_size = 74
+    hidden_sizes = 128
+    num_layers = 2
+    output_size = 1
+    dropout = 0.5
+
+    print("Initializing model...")
+    model = SingleEncoderModelAudio(
+        input_size=input_size,
+        hidden_dim=hidden_sizes,
+        num_layers=num_layers,
+        dropout_rate=dropout,
+        output_size=output_size
+    )
+
+    print("Starting training...")
+    trained_model = train_model(model, train_loader, dev_loader)
+
+    print("Starting testing...")
+    accuracy = test_model(trained_model, test_loader)
+
+    return trained_model, accuracy
 
 
 if __name__ == "__main__":
-    model = build()
-    print("Model training completed.")
+    model, test_accuracy = build()
+    print(f"Model training completed with test accuracy: {test_accuracy}")
